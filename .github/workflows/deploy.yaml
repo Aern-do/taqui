@@ -1,4 +1,5 @@
 name: Build, Push, and Deploy
+permissions: write-all
 
 on:
   push:
