@@ -31,7 +31,7 @@ services:
       - ./keys:/app/keys:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.backend.rule=Host(`taqui.link`) && PathPrefix(`/`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=myresolver"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
