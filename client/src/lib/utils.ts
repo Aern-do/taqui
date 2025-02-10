@@ -16,3 +16,9 @@ export async function authenticate() {
         });
     }
 }
+
+const isPlural = (n: number) => Math.abs(n) !== 1;
+const simplePlural = (word: string) => `${word}s`;
+
+export const pluralize = (n: number, word: string, plural = simplePlural) =>
+    isPlural(n) ? plural(word) : word;
