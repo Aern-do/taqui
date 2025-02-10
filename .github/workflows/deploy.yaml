@@ -2,6 +2,7 @@ name: Build, Push, and Deploy
 permissions: write-all
 
 on:
+  workflow_dispatch:
   push:
     branches: '*'
 
