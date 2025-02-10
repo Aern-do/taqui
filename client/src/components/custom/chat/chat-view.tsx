@@ -4,6 +4,7 @@ import MessageView from "./message-view";
 import { useGroupStore } from "@/lib/store";
 import { useEffect, useRef } from "react";
 import { Groups } from "@/lib/api/group";
+import GroupHeader from "./group-header";
 
 export default function ChatView() {
     const groupStore = useGroupStore();
@@ -32,7 +33,8 @@ export default function ChatView() {
     if (isMessagesLoading) return;
 
     return (
-        <div className="flex flex-1 flex-col space-y-4 py-4">
+        <div className="flex flex-1 flex-col space-b-4 pb-4">
+            <GroupHeader />
             <div
                 ref={messagesRef}
                 className="flex h-px flex-auto flex-col space-y-4 overflow-y-auto"

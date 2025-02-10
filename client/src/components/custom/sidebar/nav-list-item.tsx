@@ -8,6 +8,7 @@ import {
     SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar";
 import { Group } from "@/lib/api/group";
 import { useGroupStore } from "@/lib/store";
@@ -31,7 +32,7 @@ function NavListItemAction({ group }: { group: Group }) {
                         <Ellipsis />
                     </SidebarMenuAction>
                 </DropdownMenuTrigger>
-                
+
                 <DropdownMenuContent side="right" align="start">
                     <DropdownMenuItem onClick={onInvitesClick}>
                         <UsersRound />
@@ -51,8 +52,11 @@ function NavListItemAction({ group }: { group: Group }) {
 
 export function NavListItem({ group }: { group: Group }) {
     const groupStore = useGroupStore();
+    const { setOpenMobile } = useSidebar();
+
     const handleClick = () => {
         groupStore.selectGroup(group.id);
+        setOpenMobile(false);
     };
 
     return (

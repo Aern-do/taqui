@@ -1,8 +1,15 @@
 import { instance } from "./axios";
+import { User } from "./users";
+
+export interface Member {
+    readonly userId: string;
+    readonly groupId: string;
+    readonly joinedAt: string;
+}
 
 export interface Group {
     readonly id: string;
-    readonly owner_id: string;
+    readonly ownerId: string;
     readonly name: string;
 }
 
@@ -15,6 +22,11 @@ export class Groups {
 
     static getUpdatesPath(id: string): string {
         return `${Groups.BASE_PATH}/${id}/updates`;
+    }
+
+    static async fetchMembers(id: string): Promise<User[]> {
+        const { data } = await instance.get<User[]>(`${Groups.BASE_PATH}/${id}/members`);
+        return data
     }
 
     static async fetchAll(): Promise<Group[]> {

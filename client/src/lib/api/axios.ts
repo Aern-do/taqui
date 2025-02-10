@@ -1,6 +1,6 @@
 import axios, { HttpStatusCode } from "axios";
 
-export const BASE_URL = "/api";
+export const BASE_URL = import.meta.env.VITE_BASE_URL ?? "/api";
 
 export const instance = axios.create({
     baseURL: BASE_URL,
