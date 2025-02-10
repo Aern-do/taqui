@@ -22,6 +22,10 @@ pub async fn get_invites(
     Path(group_id): Path<Uuid>,
 ) -> Result<Json<Vec<Invite>>, Error> {
     let group = fetch_with_membership_check(user.id, group_id, context.pool()).await?;
+    if user.id != group.owner_id {
+        return Err(Error::INSUFFICIENT_PERMISSIONS);
+    }
+    
     let invites = Invite::fetch_all(group.id, context.pool()).await?;
 
     Ok(Json(invites))

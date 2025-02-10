@@ -42,6 +42,13 @@ export function useInvites(groupId: string): UseQueryResult<Invite[]> {
     });
 }
 
+export function useMembers(groupId: string): UseQueryResult<Invite[]> {
+    return useQuery({
+        queryKey: ["members", groupId],
+        queryFn: ({ queryKey: [_key, groupId] }) => Groups.fetchMembers(groupId),
+    });
+}
+
 export function useEvents(url: string, dependencies: DependencyList) {
     const client = useQueryClient();
 

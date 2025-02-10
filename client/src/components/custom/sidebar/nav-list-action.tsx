@@ -17,31 +17,29 @@ export function NavListAction() {
 
     return (
         <>
-            <SidebarGroupAction title="Group Actions">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" asChild>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <SidebarGroupAction title="Group Actions">
+                        <Button variant="ghost" size="icon">
                             <Plus />
                         </Button>
-                    </DropdownMenuTrigger>
+                    </SidebarGroupAction>
+                </DropdownMenuTrigger>
 
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                            onClick={() => setIsJoinDialogOpen(true)}
-                        >
-                            <LogIn className="mr-2 h-4 w-4" />
-                            <span>Join Group</span>
-                        </DropdownMenuItem>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setIsJoinDialogOpen(true)}>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        <span>Join Group</span>
+                    </DropdownMenuItem>
 
-                        <DropdownMenuItem
-                            onClick={() => setIsCreateDialogOpen(true)}
-                        >
-                            <Plus className="mr-2 h-4 w-4" />
-                            <span>Create Group</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </SidebarGroupAction>
+                    <DropdownMenuItem
+                        onClick={() => setIsCreateDialogOpen(true)}
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        <span>Create Group</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
 
             <CreateGroupDialog
                 open={isCreateDialogOpen}

@@ -6,7 +6,7 @@ use axum::{
 };
 use uuid::Uuid;
 
-use crate::{models::User, rate_limit::RateLimitLayer, Code, Context, Error};
+use crate::{models::User, rate_limit::RateLimitLayer, Context, Error};
 
 use super::auth;
 
@@ -16,7 +16,7 @@ pub async fn get_user(
 ) -> Result<Json<User>, Error> {
     let user = User::fetch(id, ctx.pool())
         .await?
-        .ok_or(Error::new_static("unknown user", Code::UnknownUser))?;
+        .ok_or(Error::UNKNOWN_USER)?;
 
     Ok(Json(user))
 }
