@@ -6,7 +6,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/backend
 
 jobs:
   build-and-deploy:
@@ -14,6 +13,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set lowercase owner name
+        run: |
+          echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/backend" >> $GITHUB_ENV
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -29,8 +33,8 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
           labels: |
             org.opencontainers.image.source=${{ github.repositoryUrl }}
 
@@ -45,9 +49,8 @@ jobs:
             mkdir -p ~/app/keys
             
             if [ ! -f ~/app/keys/private.key ]; then
-              openssl ecparam -genkey -noout -name prime256v1 \
-                  | openssl pkcs8 -topk8 -nocrypt -out keys/jwt_private.pem
-              openssl ec -in keys/jwt_private.pem -pubout -out keys/jwt_public.pem
+              openssl genrsa -out ~/app/keys/private.key 2048
+              openssl rsa -in ~/app/keys/private.key -pubout -out ~/app/keys/public.key
             fi
 
       - name: Copy compose file
@@ -69,7 +72,7 @@ jobs:
             cd ~/app
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            export BACKEND_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            export BACKEND_IMAGE=${{ env.IMAGE_NAME }}:${{ github.sha }}
             
             docker compose -f compose.prod.yaml pull
             docker compose -f compose.prod.yaml up -d
