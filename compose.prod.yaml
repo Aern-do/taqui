@@ -1,0 +1,54 @@
+services:
+  reverse-proxy:
+    image: traefik:v3.3
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=volodymyrzhuliev@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - letsencrypt:/letsencrypt
+    restart: unless-stopped
+  backend:
+    image: ${BACKEND_IMAGE:-backend:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - JWT_PATH=keys
+    volumes:
+      - ./keys:/app/keys:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`taqui.link`) && PathPrefix(`/`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=postgres 
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  letsencrypt:
