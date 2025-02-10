@@ -4,7 +4,7 @@ permissions: write-all
 on:
   workflow_dispatch:
   push:
-    branches: '*'
+    branches: main
 
 env:
   REGISTRY: ghcr.io
@@ -57,7 +57,7 @@ jobs:
             
             if [ ! -f ~/app/keys/jwt_private.key ]; then
               cd ~/app/keys
-              
+
               openssl ecparam -genkey -noout -name prime256v1 \
                   | openssl pkcs8 -topk8 -nocrypt -out jwt_private.pem
               openssl ec -in jwt_private.pem -pubout -out jwt_public.pem
