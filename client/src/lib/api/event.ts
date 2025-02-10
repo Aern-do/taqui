@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { Message } from "./message";
+import { BASE_URL } from "./axios";
 import { match } from "ts-pattern";
 
 export const EVENT_SOURCE_NAME = "taqui";
@@ -14,7 +15,7 @@ export class UpdatesEventSource extends EventSource {
         url: string,
         private queryClient: QueryClient,
     ) {
-        super(`${url}`, { withCredentials: true });
+        super(`${BASE_URL}${url}`, { withCredentials: true });
 
         this.addEventListener(EVENT_SOURCE_NAME, this.handleEvent.bind(this));
     }
