@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM messages WHERE group_id=$1\n                AND ($2::uuid IS NULL)\n                OR (created_at < (SELECT created_at FROM messages WHERE id=$2))\n            LIMIT $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "group_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "content",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "6cb94e81c6b5a343c8fd6cb46486429f8b6380823a3001582a90b8c21283a017"
+}

@@ -1,0 +1,42 @@
+services:
+  reverse-proxy:
+    image: traefik:v3.3
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  backend:
+    image: ${BACKEND_IMAGE:-backend:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - JWT_PATH=keys
+    volumes:
+      - ./keys:/app/keys:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+
+  db:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=postgres 
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

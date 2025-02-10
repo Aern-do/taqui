@@ -1,0 +1,2 @@
+ALTER TABLE invites 
+ADD COLUMN uses integer NOT NULL DEFAULT 0;
