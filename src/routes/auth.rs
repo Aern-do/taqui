@@ -29,8 +29,6 @@ use crate::{
     Context, Error, Garde, RouterExt,
 };
 
-const PRIVATE_KEY: &[u8] = include_bytes!("../../jwt_private.pem");
-const PUBLIC_KEY: &[u8] = include_bytes!("../../jwt_public.pem");
 const TOKEN_EXPIRATION: u64 = 24 * 60 * 60;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,7 +55,7 @@ fn verify_password(password: &str, password_hash: &str) -> Result<bool, Error> {
         .is_ok())
 }
 
-fn generate_token(user: &User) -> Result<String, Error> {
+fn generate_token(user: &User, private_key: &[u8]) -> Result<String, Error> {
     Ok(encode(
         &Header::new(Algorithm::ES256),
         &Claims {
@@ -65,14 +63,14 @@ fn generate_token(user: &User) -> Result<String, Error> {
             exp: get_current_timestamp() + TOKEN_EXPIRATION,
             iat: get_current_timestamp(),
         },
-        &EncodingKey::from_ec_pem(PRIVATE_KEY).expect("invalid encoding key"),
+        &EncodingKey::from_ec_pem(private_key).expect("invalid encoding key"),
     )?)
 }
 
-fn verify_token(token: &str) -> Result<Claims, Error> {
+fn verify_token(token: &str, public_key: &[u8]) -> Result<Claims, Error> {
     let token_data = match decode::<Claims>(
         token,
-        &DecodingKey::from_ec_pem(PUBLIC_KEY).expect("invalid public key"),
+        &DecodingKey::from_ec_pem(public_key).expect("invalid public key"),
         &Validation::new(Algorithm::ES256),
     ) {
         Ok(claims) => claims,
@@ -129,7 +127,7 @@ pub async fn login(
         return Err(Error::INVALID_CREDENTIALS);
     };
 
-    let token = generate_token(&user)?;
+    let token = generate_token(&user, ctx.keys().private_key())?;
 
     let expiration = OffsetDateTime::now_utc();
     let expiration = expiration + Duration::seconds(TOKEN_EXPIRATION as i64);
@@ -160,7 +158,7 @@ pub async fn middleware(
     let token = jar.get("token").ok_or(Error::INVALID_TOKEN)?;
     let token = token.value();
 
-    let claims = verify_token(token)?;
+    let claims = verify_token(token, ctx.keys().public_key())?;
     let user = User::fetch(claims.sub, ctx.pool())
         .await?
         .ok_or(Error::INVALID_TOKEN)?;

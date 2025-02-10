@@ -4,16 +4,8 @@ import {
     SidebarGroupContent,
     SidebarGroupLabel,
     SidebarMenu,
-    SidebarMenuAction,
-    SidebarMenuButton,
-    SidebarMenuItem,
 } from "../../ui/sidebar";
 
-import { DropdownMenu, DropdownMenuTrigger } from "../../ui/dropdown-menu";
-
-import { Ellipsis, Hash } from "lucide-react";
-import { Group } from "@/lib/api/group";
-import { useGroupStore } from "@/lib/store";
 import { NavListAction } from "./nav-list-action";
 import { NavListItem } from "./nav-list-item";
 

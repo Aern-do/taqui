@@ -12,7 +12,7 @@ import {
 import { Group } from "@/lib/api/group";
 import { useGroupStore } from "@/lib/store";
 
-import { Ellipsis, Hash, Trash, UsersRound } from "lucide-react";
+import { Ellipsis, Hash, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { InvitesDialog } from "./invites-dialog";
 

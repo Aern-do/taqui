@@ -1,7 +1,3 @@
-import Group from "@/components/custom/Group";
-import Message from "@/components/custom/chat/message-view";
-import MessageInput from "@/components/custom/chat/message-input";
-import UserStatus from "@/components/custom/status";
 import { authenticate } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { SidebarProvider } from "@/components/ui/sidebar";

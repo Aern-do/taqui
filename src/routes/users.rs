@@ -20,12 +20,12 @@ pub async fn get_user(
 
     Ok(Json(user))
 }
+
 pub fn create_router(context: Context) -> Router<Context> {
     let auth_middleware = from_fn_with_state(context.clone(), auth::middleware);
 
     Router::new()
         .route("/:id", get(get_user))
-        .layer(auth_middleware)
         .layer(
             RateLimitLayer::builder()
                 .with_user("users")
@@ -33,4 +33,5 @@ pub fn create_router(context: Context) -> Router<Context> {
                 .with_refill_rate(1)
                 .build(context),
         )
+        .layer(auth_middleware)
 }
