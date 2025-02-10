@@ -1,9 +1,6 @@
 import axios, { HttpStatusCode } from "axios";
 
-export const BASE_URL = "https://localhost/api";
-
 export const instance = axios.create({
-    baseURL: BASE_URL,
     withCredentials: true,
     headers: {
         "Content-Type": "application/json",
