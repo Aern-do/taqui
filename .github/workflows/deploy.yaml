@@ -55,7 +55,7 @@ jobs:
             mkdir -p ~/app
             mkdir -p ~/app/keys
             
-            if [ ! -f ~/app/keys/jwt_private.key ]; then
+            if [ ! -f ~/app/keys/jwt_private.pem ]; then
               cd ~/app/keys
 
               openssl ecparam -genkey -noout -name prime256v1 \
