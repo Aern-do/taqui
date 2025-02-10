@@ -6,7 +6,6 @@ import ChatView from "@/components/custom/chat/chat-view";
 import { useGroupStore } from "@/lib/store";
 import { useSwipeable } from 'react-swipeable';
 import { useEffect } from 'react';
-import GroupHeader from "@/components/custom/chat/group-header";
 import EmptyGroupHeader from "@/components/custom/chat/empty-group-header";
 
 export const Route = createFileRoute("/")({

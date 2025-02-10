@@ -72,10 +72,16 @@ impl Message {
     pub async fn fetch_all(query: &MessageQuery, pool: &PgPool) -> Result<Vec<Message>, Error> {
         let messages = sqlx::query_as!(
             Message,
-            "SELECT * FROM messages WHERE group_id=$1
-                AND ($2::uuid IS NULL)
-                OR (created_at < (SELECT created_at FROM messages WHERE id=$2))
-            LIMIT $3",
+            r#"SELECT * FROM (
+                SELECT * FROM messages
+                WHERE group_id = $1
+                    AND ($2::uuid IS NULL OR created_at < (SELECT created_at FROM messages WHERE id = $2))
+                ORDER BY
+                    CASE WHEN $2::uuid IS NULL THEN created_at END DESC,
+                    CASE WHEN $2::uuid IS NOT NULL THEN created_at END ASC
+                LIMIT $3
+            ) AS sub
+            ORDER BY created_at ASC"#,
             query.group_id,
             query.before,
             query.limit

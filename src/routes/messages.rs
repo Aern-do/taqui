@@ -5,13 +5,15 @@ use axum::{
 };
 use garde::Validate;
 use serde::{Deserialize, Serialize};
+use unicode_width::UnicodeWidthChar;
 use uuid::Uuid;
 
 use crate::{
     event::Event,
     models::{
+        group::{self},
         message::{Message, MessageQuery, NewMessage},
-        Group, User,
+        User,
     },
     rate_limit::middleware::RateLimitLayer,
     subscriptions::Subscription,
@@ -20,8 +22,36 @@ use crate::{
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct CreateMessageBody {
-    #[garde(length(min = 1, max = 1000))]
+    #[garde(custom(sanitize_and_validate_message))]
     content: String,
+}
+
+fn sanitize(content: &str) -> String {
+    content
+        .chars()
+        .map(|c| match c.width_cjk() {
+            Some(0) => ' ',
+            _ => c,
+        })
+        .collect::<String>()
+        .trim()
+        .to_string()
+}
+
+fn sanitize_and_validate_message(content: &str, _: &()) -> garde::Result {
+    let sanitized = sanitize(content);
+
+    if sanitized.is_empty() {
+        return Err(garde::Error::new("message cannot be empty"));
+    }
+
+    if sanitized.len() > 1000 {
+        return Err(garde::Error::new(
+            "message is too long (max 1000 characters)",
+        ));
+    }
+
+    Ok(())
 }
 
 pub async fn create_message(
@@ -30,15 +60,13 @@ pub async fn create_message(
     Path(group_id): Path<Uuid>,
     Garde(Json(body)): Garde<Json<CreateMessageBody>>,
 ) -> Result<Json<Message>, Error> {
-    let group = Group::fetch(group_id, context.pool())
-        .await?
-        .ok_or(Error::UNKNOWN_GROUP)?;
+    let group = group::fetch_with_membership_check(user.id, group_id, context.pool()).await?;
 
     let message = Message::create(
         &NewMessage {
             user_id: user.id,
             group_id: group.id,
-            content: body.content,
+            content: sanitize(&body.content),
         },
         context.pool(),
     )
@@ -64,11 +92,10 @@ pub struct GetMessagesParams {
 pub async fn get_messages(
     State(context): State<Context>,
     Path(group_id): Path<Uuid>,
+    Extension(user): Extension<User>,
     Garde(Query(body)): Garde<Query<GetMessagesParams>>,
 ) -> Result<Json<Vec<Message>>, Error> {
-    let group = Group::fetch(group_id, context.pool())
-        .await?
-        .ok_or(Error::UNKNOWN_GROUP)?;
+    let group = group::fetch_with_membership_check(user.id, group_id, context.pool()).await?;
 
     let messages = Message::fetch_all(
         &MessageQuery {
