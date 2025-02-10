@@ -1,12 +1,5 @@
 import { LogIn, Plus } from "lucide-react";
 import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -14,7 +7,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarGroupAction } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreateGroupDialog from "./create-group-dialog";
 import JoinGroupDialog from "./join-group-dialog";

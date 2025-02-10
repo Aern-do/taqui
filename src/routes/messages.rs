@@ -94,5 +94,4 @@ pub fn create_router(context: Context) -> Router<Context> {
                 .with_refill_rate(1)
                 .build(context.clone()),
         )
-        .with_state(context)
 }

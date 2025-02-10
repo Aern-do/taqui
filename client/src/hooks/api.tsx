@@ -1,5 +1,4 @@
-import { BASE_URL } from "@/lib/api/axios";
-import { Event, EVENT_SOURCE_NAME, UpdatesEventSource } from "@/lib/api/event";
+import { UpdatesEventSource } from "@/lib/api/event";
 import { Group, Groups } from "@/lib/api/group";
 import { Invite, Invites } from "@/lib/api/invite";
 import { Message, Messages } from "@/lib/api/message";

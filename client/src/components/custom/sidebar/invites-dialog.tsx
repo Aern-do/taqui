@@ -6,9 +6,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { DialogProps } from "@radix-ui/react-dialog";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Copy, Trash } from "lucide-react";
 import { Group } from "@/lib/api/group";
 import { useInvites } from "@/hooks/api";
 import InviteView from "../invite-view";

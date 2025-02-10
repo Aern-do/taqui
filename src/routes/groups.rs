@@ -100,22 +100,25 @@ pub async fn updates(
 pub fn create_router(context: Context) -> Router<Context> {
     let auth_middleware = from_fn_with_state(context.clone(), auth::middleware);
 
-    Router::new()
+    let groups_routes = Router::new()
         .route("/", get(get_groups).post(create_group))
         .route("/:group_id", get(get_group).delete(delete_group))
         .route("/:group_id/updates", get(updates))
         .route("/:group_id/members", get(get_members))
-        .nest(
-            "/:group_id/messages",
-            messages::create_router(context.clone()),
-        )
-        .nest("/:group_id/invites", invites::create_router(context.clone()))
-        .layer(auth_middleware)
         .layer(
             RateLimitLayer::builder()
                 .with_user("groups")
                 .with_capacity(10)
                 .with_refill_rate(1)
-                .build(context),
+                .build(context.clone()),
+        );
+
+    Router::new()
+        .merge(groups_routes)
+        .nest(
+            "/:group_id/messages",
+            messages::create_router(context.clone()),
         )
+        .nest("/:group_id/invites", invites::create_router(context))
+        .layer(auth_middleware)
 }

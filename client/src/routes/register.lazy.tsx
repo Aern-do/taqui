@@ -1,9 +1,8 @@
-import * as React from "react";
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { login, register } from "@/lib/api/axios";
+import { register } from "@/lib/api/axios";
 import {
     Form,
     FormControl,

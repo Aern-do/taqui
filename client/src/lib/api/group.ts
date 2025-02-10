@@ -1,4 +1,4 @@
-import { BASE_URL, instance } from "./axios";
+import { instance } from "./axios";
 
 export interface Group {
     readonly id: string;

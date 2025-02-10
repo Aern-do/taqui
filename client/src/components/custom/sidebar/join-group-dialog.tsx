@@ -1,4 +1,3 @@
-import React from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import {
     Dialog,
@@ -6,7 +5,6 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
