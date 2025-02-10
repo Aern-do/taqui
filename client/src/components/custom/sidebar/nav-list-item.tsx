@@ -16,9 +16,14 @@ import { useGroupStore } from "@/lib/store";
 import { Ellipsis, Hash, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { InvitesDialog } from "./invites-dialog";
+import { useMe } from "@/lib/hooks";
 
 function NavListItemAction({ group }: { group: Group }) {
     const [isInvitesOpen, setInvitesOpen] = useState(false);
+    const { data: user, isLoading } = useMe();
+    
+    if(isLoading) return;
+    if(user!.id != group.ownerId) return;
 
     const onInvitesClick = () => {
         setInvitesOpen(!isInvitesOpen);
