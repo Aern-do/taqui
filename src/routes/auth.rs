@@ -88,15 +88,36 @@ fn verify_token(token: &str, public_key: &[u8]) -> Result<Claims, Error> {
     Ok(token_data.claims)
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct RegisterBody {
+    #[garde(pattern(r#"^[a-zA-Z_][a-zA-Z0-9_]*$"#), length(min = 4, max = 16))]
     username: String,
+    #[garde(length(min = 8), custom(validate_password_strength))]
     password: String,
+}
+
+fn validate_password_strength(password: &str, _: &()) -> garde::Result {
+    if !password.chars().any(|char| char.is_uppercase()) {
+        return Err(garde::Error::new(
+            "password must contain at least one uppercase letter",
+        ));
+    }
+
+    if !password
+        .chars()
+        .any(|char| matches!(char, '!' | '@' | '#' | '$' | '&' | '*' | '_'))
+    {
+        return Err(garde::Error::new(
+            "password must contain at least one uppercase letter",
+        ));
+    }
+
+    Ok(())
 }
 
 pub async fn register(
     State(ctx): State<Context>,
-    Json(body): Json<RegisterBody>,
+    Garde(Json(body)): Garde<Json<RegisterBody>>,
 ) -> Result<Json<User>, Error> {
     let password_hash = task::spawn_blocking(|| hash_password(body.password))
         .await
@@ -108,9 +129,9 @@ pub async fn register(
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct LoginBody {
-    #[garde(length(min = 4, max = 16), pattern(r"^[a-zA-Z0-9_]+$"))]
+    #[garde(pattern(r#"^[a-zA-Z_][a-zA-Z0-9_]*$"#), length(min = 4, max = 16))]
     username: String,
-    #[garde(length(min = 4))]
+    #[garde(length(min = 8))]
     password: String,
 }
 

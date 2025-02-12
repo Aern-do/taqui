@@ -1,52 +1,75 @@
 import { ApiError, ErrorCode } from "@/lib/api/error";
 import { FieldPath, FieldValues, UseFormSetError } from "react-hook-form";
-import { toast } from "./use-toast";
+import { Toast, toast } from "./use-toast";
 
-type Mapping<T extends FieldValues> =
-    | FieldPath<T>
+type Path<T extends FieldValues> = FieldPath<T> | `root.${string}` | "root";
+
+type FormMapping<T extends FieldValues> =
+    | Path<T>
     | {
-          path: FieldPath<T>;
+          path: Path<T>;
           message: string;
       };
 
-type Mappings<T extends FieldValues> = {
-    [key in ErrorCode]?: Mapping<T>;
+type FormMappings<T extends FieldValues> = {
+    [key in ErrorCode]?: FormMapping<T>;
+};
+
+type ToastMappings = {
+    [key in ErrorCode]?: Toast;
+};
+
+type CallbackMappings = {
+    [key in ErrorCode]?: (error: ApiError) => void
+}
+
+const DEFAULT_TOAST_MAPPINGS: ToastMappings = {
+    [ErrorCode.Internal]: {
+        variant: "destructive",
+        title: "Internal Server Error",
+        description: "Something went wrong on our end. Please try again later.",
+    },
+    [ErrorCode.Validation]: {
+        variant: "destructive",
+        title: "Validation Error",
+        description:
+            "Validation on the client and server is different, please report this to the developers.",
+    },
+    [ErrorCode.RateLimited]: {
+        variant: "destructive",
+        title: "Rate Limit",
+        description: "You are being rate limited.",
+    },
 };
 
 export function useErrorHandler<T extends FieldValues>({
-    mappings = {},
+    formMappings = {},
+    callbackMappings = {},
+    toastMappings = DEFAULT_TOAST_MAPPINGS,
     setError,
 }: {
-    mappings?: Mappings<T>;
+    formMappings?: FormMappings<T>;
+    toastMappings?: ToastMappings;
+    callbackMappings?: CallbackMappings,
     setError?: UseFormSetError<T>;
 }) {
     return (error: ApiError) => {
-        if (error.code == ErrorCode.Internal) {
-            toast({
-                variant: "destructive",
-                title: "Internal Server Error",
-                description:
-                    "Something went wrong on our end. Please try again later.",
-            });
-        } else if (error.code == ErrorCode.Validation) {
-            toast({
-                variant: "destructive",
-                title: "Validation Error",
-                description:
-                    "Validation on the client and server is different, please report this to the developers.",
-            });
-        } else if (error.code == ErrorCode.RateLimited) {
-            toast({
-                variant: "destructive",
-                title: "Rate Limit",
-                description: "You are being rate limited.",
-            });
+        const callback = callbackMappings[error.code];
+        if (callback) {
+            callback(error);
+            return;
         }
 
-        const mapping = mappings[error.code];
+        const toastConfig = toastMappings[error.code];
+        if (toastConfig) {
+            toast(toastConfig);
+            return;
+        }
+
+        const mapping = formMappings[error.code];
         if (!mapping) return;
 
-        if (typeof mapping == "string") {
+        if (typeof mapping === "string") {
             setError?.(mapping, {
                 type: "custom",
                 message: error.details.toString(),
@@ -59,3 +82,4 @@ export function useErrorHandler<T extends FieldValues>({
         }
     };
 }
+

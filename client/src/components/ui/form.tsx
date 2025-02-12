@@ -164,6 +164,30 @@ const FormMessage = React.forwardRef<
 })
 FormMessage.displayName = "FormMessage"
 
+const ManualFormMessage = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement> & {
+    message?: React.ReactNode
+  }
+>(({ className, message, children, ...props }, ref) => {
+  const body = message ?? children
+
+  if (!body) {
+    return null
+  }
+
+  return (
+    <p
+      ref={ref}
+      className={cn("text-[0.8rem] font-medium text-destructive", className)}
+      {...props}
+    >
+      {body}
+    </p>
+  )
+})
+ManualFormMessage.displayName = "ManualFormMessage"
+
 export {
   useFormField,
   Form,
@@ -172,5 +196,6 @@ export {
   FormControl,
   FormDescription,
   FormMessage,
+  ManualFormMessage,
   FormField,
 }

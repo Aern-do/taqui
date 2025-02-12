@@ -1,13 +1,31 @@
 import { useUser } from "@/hooks/api";
 import { Message } from "@/lib/api/message";
-import moment from "moment";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
+import moment, { Moment } from "moment";
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import AvatarView from "../avatar-view";
 
-export default function MessageView({ 
+function formatMoment(date: Moment): string {
+    const now = moment();
+    if (date.isSame(now, "day")) {
+        return `Today at ${date.format("h:mm A")}`;
+    } else if (date.isSame(now.subtract(1, "day"), "day")) {
+        return `Yesterday at ${date.format("h:mm A")}`;
+    } else if (date.isSame(now, "year")) {
+        return date.format("MMM D [at] h:mm A");
+    } else {
+        return date.format("MMM D, YYYY [at] h:mm A");
+    }
+}
+
+export default function MessageView({
     message,
     showHeader,
-}: { 
+}: {
     message: Message;
     showHeader: boolean;
 }) {
@@ -19,25 +37,26 @@ export default function MessageView({
 
     return (
         <ContextMenu>
-            <ContextMenuTrigger className="flex px-4 w-full hover:bg-white/5">
-                <div className="w-[40px] min-w-[40px] mr-3">
+            <ContextMenuTrigger className="flex items-center w-full min-w-0 max-w-full px-4 hover:bg-white/5">
+                <div className="mr-3 w-[40px] min-w-[40px]">
                     {showHeader && <AvatarView user={user} />}
                 </div>
-                
-                <div className="flex flex-col flex-1">
+
+                <div className="flex min-w-0 max-w-full flex-1 flex-col">
                     {showHeader && (
                         <div className="flex items-center space-x-2">
                             <h1 className="font-semibold">{user.username}</h1>
                             <p className="text-sm text-muted-foreground">
-                                Today at {createdAt.format("hh:mm a")}
+                                {formatMoment(createdAt)}
                             </p>
                         </div>
                     )}
-                    
-                    <p>{message.content}</p>
+                    <div className="min-w-0 max-w-full whitespace-pre-wrap break-words">
+                        {message.content}
+                    </div>
                 </div>
             </ContextMenuTrigger>
-            
+
             <ContextMenuContent>
                 <ContextMenuItem>Edit</ContextMenuItem>
             </ContextMenuContent>

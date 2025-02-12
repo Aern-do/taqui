@@ -2,11 +2,7 @@ import { User } from "@/lib/api/users";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 
 const getColorFromId = (id: string) => {
-    const hash = id
-        .split("")
-        .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-
-    const colors = [
+    const colors = Object.freeze([
         "bg-red-700",
         "bg-blue-700",
         "bg-green-700",
@@ -16,9 +12,13 @@ const getColorFromId = (id: string) => {
         "bg-indigo-700",
         "bg-teal-700",
         "bg-cyan-700",
-    ];
+    ]);
 
-    return colors[hash % colors.length];
+    const hash = id
+        .split("")
+        .reduce((acc, char) => (acc * 33 + char.charCodeAt(0)) | 0, 5381);
+
+    return colors[Math.abs(hash) % colors.length];
 };
 
 export default function AvatarView({ user }: { user: User }) {

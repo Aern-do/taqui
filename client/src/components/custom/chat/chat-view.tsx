@@ -59,20 +59,18 @@ export default function ChatView() {
     if (isMessagesLoading) return;
 
     return (
-        <div className="space-b-4 flex flex-1 flex-col pb-4">
+        <div className="space-b-4 flex min-w-0 max-w-full flex-1 flex-col pb-4">
             <GroupHeader />
 
             <div
                 ref={messagesRef}
-                className="flex h-px flex-auto flex-col overflow-y-auto pb-4"
+                className="flex h-px min-w-0 flex-auto flex-col overflow-y-auto pb-4"
             >
                 {groupedMessages.map(({ message, showHeader }, index) => (
                     <div
                         key={message.id}
                         className={`${
-                            showHeader
-                                ? "mt-4"
-                                : "mt-1"
+                            showHeader ? "mt-4" : "mt-1"
                         } ${index === 0 ? "mt-0" : ""}`}
                     >
                         <MessageView
@@ -83,7 +81,7 @@ export default function ChatView() {
                 ))}
                 <div ref={endRef} />
             </div>
-            
+
             <MessageInput />
         </div>
     );
