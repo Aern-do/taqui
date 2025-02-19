@@ -4,8 +4,10 @@ export interface Message {
     readonly id: string;
     readonly userId: string;
     readonly groupId: string;
-    readonly createdAt: string;
     readonly content: string;
+
+    readonly createdAt: string;
+    readonly updatedAt?: string;
 }
 
 export interface FetchMessagesParams {
@@ -13,8 +15,19 @@ export interface FetchMessagesParams {
     before?: string;
 }
 
+export interface DeleteMessageRequest {
+    groupId: string;
+    messageId: string;
+}
+
 export interface CreateMessageRequest {
     groupId: string;
+    content: string;
+}
+
+export interface EditMessageRequest {
+    groupId: string;
+    messageId: string;
     content: string;
 }
 
@@ -40,15 +53,25 @@ export class Messages {
         return data;
     }
 
-    static async create(
-        request: CreateMessageRequest,
-    ): Promise<Message> {
-        console.log(request);
+    static async create(request: CreateMessageRequest): Promise<Message> {
         const { data } = await instance.post<Message>(
             `${Messages.getBasePath(request.groupId)}`,
             request,
         );
 
         return data;
+    }
+
+    static async edit(request: EditMessageRequest): Promise<Message> {
+        const { data } = await instance.patch<Message>(
+            `${Messages.getBasePath(request.groupId)}/${request.messageId}`,
+            request,
+        );
+
+        return data;
+    }
+
+    static async delete(request: DeleteMessageRequest): Promise<void> {
+        await instance.delete(`${Messages.getBasePath(request.groupId)}/${request.messageId}`);
     }
 }

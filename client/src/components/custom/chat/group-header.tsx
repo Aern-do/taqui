@@ -3,12 +3,12 @@ import { Hash, Menu, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { pluralize } from "@/lib/utils";
-import { useGroupStore } from "@/lib/store";
+import { useChatStore } from "@/lib/store";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function GroupHeader() {
-    const { selectedGroupId } = useGroupStore();
+    const { selectedGroup: selectedGroupId } = useChatStore();
     const { setOpenMobile } = useSidebar();
     const isMobile = useIsMobile();
 

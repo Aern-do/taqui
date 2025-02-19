@@ -52,7 +52,7 @@ export function useErrorHandler<T extends FieldValues>({
     toastMappings?: ToastMappings;
     callbackMappings?: CallbackMappings,
     setError?: UseFormSetError<T>;
-}) {
+} = {}) {
     return (error: ApiError) => {
         const callback = callbackMappings[error.code];
         if (callback) {

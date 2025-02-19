@@ -7,4 +7,5 @@ use crate::models::message::Message;
 #[serde(rename_all = "camelCase")]
 pub enum Event {
     NewMessage(Message),
+    EditMessage(Message)
 }

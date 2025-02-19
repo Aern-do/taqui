@@ -1,7 +1,7 @@
 import { useEvents, useMessages } from "@/hooks/api";
 import MessageInput from "./message-input";
 import MessageView from "./message-view";
-import { useGroupStore } from "@/lib/store";
+import { useChatStore } from "@/lib/store";
 import { useEffect, useMemo, useRef } from "react";
 import { Groups } from "@/lib/api/group";
 import GroupHeader from "./group-header";
@@ -13,16 +13,16 @@ interface GroupedMessage {
 }
 
 export default function ChatView() {
-    const groupStore = useGroupStore();
+    const groupStore = useChatStore();
     const endRef = useRef<HTMLDivElement>(null);
     const messagesRef = useRef<HTMLDivElement>(null);
 
     const { data: messages, isLoading: isMessagesLoading } = useMessages(
-        groupStore.selectedGroupId!!,
+        groupStore.selectedGroup!!,
     );
 
-    useEvents(Groups.getUpdatesPath(groupStore.selectedGroupId!!), [
-        groupStore.selectedGroupId,
+    useEvents(Groups.getUpdatesPath(groupStore.selectedGroup!!), [
+        groupStore.selectedGroup,
     ]);
 
     useEffect(() => {
@@ -66,18 +66,12 @@ export default function ChatView() {
                 ref={messagesRef}
                 className="flex h-px min-w-0 flex-auto flex-col overflow-y-auto pb-4"
             >
-                {groupedMessages.map(({ message, showHeader }, index) => (
-                    <div
+                {groupedMessages.map(({ message, showHeader }) => (
+                    <MessageView
                         key={message.id}
-                        className={`${
-                            showHeader ? "mt-4" : "mt-1"
-                        } ${index === 0 ? "mt-0" : ""}`}
-                    >
-                        <MessageView
-                            message={message}
-                            showHeader={showHeader}
-                        />
-                    </div>
+                        message={message}
+                        showHeader={showHeader}
+                    />
                 ))}
                 <div ref={endRef} />
             </div>

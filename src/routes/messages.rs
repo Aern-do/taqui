@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
-    routing::{get, post},
+    routing::{get, patch, post},
     Extension, Json, Router,
 };
 use garde::Validate;
@@ -12,19 +12,13 @@ use crate::{
     event::Event,
     models::{
         group::{self},
-        message::{Message, MessageQuery, NewMessage},
+        message::{self, can_modify_message, Message, MessageQuery, NewMessage},
         User,
     },
     rate_limit::middleware::RateLimitLayer,
     subscriptions::Subscription,
     Context, Error, Garde,
 };
-
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
-pub struct CreateMessageBody {
-    #[garde(custom(sanitize_and_validate_message))]
-    content: String,
-}
 
 fn sanitize(content: &str) -> String {
     content
@@ -52,6 +46,12 @@ fn sanitize_and_validate_message(content: &str, _: &()) -> garde::Result {
     }
 
     Ok(())
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct CreateMessageBody {
+    #[garde(custom(sanitize_and_validate_message))]
+    content: String,
 }
 
 pub async fn create_message(
@@ -110,10 +110,41 @@ pub async fn get_messages(
     Ok(Json(messages))
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+pub struct EditMessageBody {
+    #[garde(custom(sanitize_and_validate_message))]
+    content: String,
+}
+
+pub async fn edit_message(
+    Path((group_id, message_id)): Path<(Uuid, Uuid)>,
+    Extension(user): Extension<User>,
+    State(context): State<Context>,
+    Garde(Json(body)): Garde<Json<EditMessageBody>>,
+) -> Result<Json<Message>, Error> {
+    let group = group::fetch_with_membership_check(user.id, group_id, context.pool()).await?;
+    let message = message::fetch_with_group_check(message_id, &group, context.pool()).await?;
+
+    if !can_modify_message(&user, &message) {
+        return Err(Error::INSUFFICIENT_PERMISSIONS);
+    }
+
+    let content = sanitize(&body.content);
+    let new_message = Message::edit(message.id, &content, context.pool()).await?;
+
+    context.subscriptions().send(
+        &Event::EditMessage(new_message.clone()),
+        &Subscription::Group(group.id),
+    );
+
+    Ok(Json(new_message))
+}
+
 pub fn create_router(context: Context) -> Router<Context> {
     Router::new()
         .route("/", post(create_message))
         .route("/", get(get_messages))
+        .route("/:id", patch(edit_message))
         .layer(
             RateLimitLayer::builder()
                 .with_user("messages")

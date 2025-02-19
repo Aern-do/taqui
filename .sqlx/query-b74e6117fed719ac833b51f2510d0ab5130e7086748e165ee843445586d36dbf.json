@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO messages(user_id, group_id, content) VALUES ($1, $2, $3) RETURNING *",
+  "query": "SELECT * FROM messages WHERE id=$1",
   "describe": {
     "columns": [
       {
@@ -36,9 +36,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Uuid",
-        "Varchar"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -50,5 +48,5 @@
       true
     ]
   },
-  "hash": "3e755a1bf2c01a7398ef28f60dc86eb461eee1414fc03a62a935d3b3f6d539c7"
+  "hash": "b74e6117fed719ac833b51f2510d0ab5130e7086748e165ee843445586d36dbf"
 }
