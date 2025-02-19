@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/custom/sidebar/app-sidebar";
 import ChatView from "@/components/custom/chat/chat-view";
-import { useGroupStore } from "@/lib/store";
+import { useChatStore } from "@/lib/store";
 import { useSwipeable } from "react-swipeable";
 import { useEffect } from "react";
 import EmptyGroupHeader from "@/components/custom/chat/empty-group-header";
@@ -41,14 +41,14 @@ function SwipeHandler() {
 }
 
 function Index() {
-    const groupStore = useGroupStore();
+    const groupStore = useChatStore();
     const isMobile = useIsMobile();
 
     return (
         <SidebarProvider>
             <SwipeHandler />
             <AppSidebar />
-            {groupStore.selectedGroupId ? (
+            {groupStore.selectedGroup ? (
                 <ChatView />
             ) : (
                 isMobile && <EmptyGroupHeader />

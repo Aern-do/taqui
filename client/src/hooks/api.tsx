@@ -3,7 +3,7 @@ import { Group, Groups } from "@/lib/api/group";
 import { Invite, Invites } from "@/lib/api/invite";
 import { Message, Messages } from "@/lib/api/message";
 import { User, Users } from "@/lib/api/users";
-import { useGroupStore } from "@/lib/store";
+import { useChatStore } from "@/lib/store";
 import {
     useQuery,
     useQueryClient,
@@ -12,10 +12,10 @@ import {
 import { DependencyList, useEffect } from "react";
 
 export function useSelectedGroup(): UseQueryResult<Group> {
-    const groupStore = useGroupStore();
+    const groupStore = useChatStore();
 
     return useQuery({
-        queryKey: ["groups", groupStore.selectedGroupId!!],
+        queryKey: ["groups", groupStore.selectedGroup!!],
         queryFn: ({ queryKey: [_key, id] }) => Groups.fetch(id),
     });
 }

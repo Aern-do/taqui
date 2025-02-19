@@ -11,7 +11,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { Group } from "@/lib/api/group";
-import { useGroupStore } from "@/lib/store";
+import { useChatStore } from "@/lib/store";
 
 import { Ellipsis, Hash, UsersRound } from "lucide-react";
 import { useState } from "react";
@@ -56,7 +56,7 @@ function NavListItemAction({ group }: { group: Group }) {
 }
 
 export function NavListItem({ group }: { group: Group }) {
-    const groupStore = useGroupStore();
+    const groupStore = useChatStore();
     const { setOpenMobile } = useSidebar();
 
     const handleClick = () => {
@@ -68,7 +68,7 @@ export function NavListItem({ group }: { group: Group }) {
         <SidebarMenuItem>
             <SidebarMenuButton
                 onClick={handleClick}
-                isActive={groupStore.selectedGroupId == group.id}
+                isActive={groupStore.selectedGroup == group.id}
             >
                 <Hash />
                 <span>{group.name}</span>

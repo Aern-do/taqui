@@ -1,14 +1,25 @@
-import { Nullable } from "./utils";
 import { create } from "zustand";
 
-interface GroupStore {
-    selectedGroupId: Nullable<string>;
-    selectGroup: (groupId: string) => void;
+interface ChatStore {
+    selectedGroup: string | null;
+    selectedMessage: string | null;
+
+    selectGroup: (group: string) => void;
+    selectMessage: (message: string) => void;
+    unselectMessage: () => void;
 }
 
-export const useGroupStore = create<GroupStore>()((set) => ({
-    selectedGroupId: null,
-    selectGroup: (groupId) => {
-        set({ selectedGroupId: groupId });
+export const useChatStore = create<ChatStore>()((set) => ({
+    selectedMessage: null,
+    selectedGroup: null,
+
+    selectGroup: (group) => {
+        set({ selectedGroup: group });
+    },
+    selectMessage: (message) => {
+        set({ selectedMessage: message });
+    },
+    unselectMessage: () => {
+        set({ selectedMessage: null });
     },
 }));

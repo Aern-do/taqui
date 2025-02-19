@@ -8,6 +8,10 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import AvatarView from "../avatar-view";
+import { useChatStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import EditMessageView from "./edit-message-view";
+import { useMe } from "@/lib/hooks";
 
 function formatMoment(date: Moment): string {
     const now = moment();
@@ -17,9 +21,8 @@ function formatMoment(date: Moment): string {
         return `Yesterday at ${date.format("h:mm A")}`;
     } else if (date.isSame(now, "year")) {
         return date.format("MMM D [at] h:mm A");
-    } else {
-        return date.format("MMM D, YYYY [at] h:mm A");
     }
+    return date.format("MMM D, YYYY [at] h:mm A");
 }
 
 export default function MessageView({
@@ -29,37 +32,61 @@ export default function MessageView({
     message: Message;
     showHeader: boolean;
 }) {
-    const { data: user, isLoading } = useUser(message.userId);
-    const offset = moment().utcOffset();
-    const createdAt = moment(message.createdAt).add(offset, "minutes");
+    const { selectMessage, selectedMessage } = useChatStore();
+    const { data: user, isLoading: isLoadingUser } = useUser(message.userId);
+    const { data: me, isLoading: isLoadingMe } = useMe();
 
-    if (isLoading || !user) return null;
+    if ([isLoadingUser, isLoadingMe].some(Boolean) || !user || !me) return;
+
+    const createdAt = moment(message.createdAt).add(
+        moment().utcOffset(),
+        "minutes",
+    );
+
+    const isEditing = selectedMessage === message.id;
 
     return (
         <ContextMenu>
-            <ContextMenuTrigger className="flex items-center w-full min-w-0 max-w-full px-4 hover:bg-white/5">
-                <div className="mr-3 w-[40px] min-w-[40px]">
+            <ContextMenuTrigger
+                className={cn(
+                    "hover:bg-accent/50z flex w-full px-4",
+                    showHeader ? "mt-4" : "mt-1",
+                    isEditing && "bg-accent/50",
+                )}
+            >
+                <div className="mr-3 w-[40px]">
                     {showHeader && <AvatarView user={user} />}
                 </div>
 
-                <div className="flex min-w-0 max-w-full flex-1 flex-col">
+                <div className="flex-1">
                     {showHeader && (
-                        <div className="flex items-center space-x-2">
-                            <h1 className="font-semibold">{user.username}</h1>
-                            <p className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold">
+                                {user.username}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
                                 {formatMoment(createdAt)}
-                            </p>
+                            </span>
                         </div>
                     )}
-                    <div className="min-w-0 max-w-full whitespace-pre-wrap break-words">
-                        {message.content}
-                    </div>
+
+                    {isEditing ? (
+                        <EditMessageView message={message} />
+                    ) : (
+                        <div className="whitespace-pre-wrap break-words">
+                            {message.content}
+                        </div>
+                    )}
                 </div>
             </ContextMenuTrigger>
 
-            <ContextMenuContent>
-                <ContextMenuItem>Edit</ContextMenuItem>
-            </ContextMenuContent>
+            {message.userId == me.id && (
+                <ContextMenuContent>
+                    <ContextMenuItem onClick={() => selectMessage(message.id)}>
+                        Edit
+                    </ContextMenuItem>
+                </ContextMenuContent>
+            )}
         </ContextMenu>
     );
 }

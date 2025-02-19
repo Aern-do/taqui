@@ -81,6 +81,7 @@ define_code!(
         UserAlreadyExists = (5003, CONFLICT) @ "user with this username already exists",
         Validation = (5004, UNPROCESSABLE_ENTITY) @ "validation error",
         AlreadyMember = (5005, CONFLICT) @ "already a member",
+        UnknownMessage = (5006, NOT_FOUND) @ "unknown message",
 
         InvalidToken = (6000, UNAUTHORIZED) @ "invalid token",
         InsufficientPermissions = (6001, UNAUTHORIZED) @ "insufficient permissions",

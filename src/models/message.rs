@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
+use sqlx::{FromRow, PgExecutor, PgPool};
 use uuid::Uuid;
 
 use crate::Error;
 
-use super::User;
+use super::{Group, User};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -69,6 +69,30 @@ impl Message {
         Ok(message)
     }
 
+    pub async fn edit(id: Uuid, content: &str, pool: &PgPool) -> Result<Message, Error> {
+        let message = sqlx::query_as!(
+            Message,
+            "UPDATE messages SET content=$1 WHERE id=$2 RETURNING *",
+            content,
+            id
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(message)
+    }
+
+    pub async fn fetch<'e, E: PgExecutor<'e>>(
+        message_id: Uuid,
+        executor: E,
+    ) -> Result<Option<Message>, Error> {
+        let message = sqlx::query_as!(Message, "SELECT * FROM messages WHERE id=$1", message_id)
+            .fetch_optional(executor)
+            .await?;
+
+        Ok(message)
+    }
+
     pub async fn fetch_all(query: &MessageQuery, pool: &PgPool) -> Result<Vec<Message>, Error> {
         let messages = sqlx::query_as!(
             Message,
@@ -93,6 +117,22 @@ impl Message {
     }
 }
 
-pub fn can_delete_message(user: &User, message: &Message) -> bool {
+pub async fn fetch_with_group_check(
+    id: Uuid,
+    group: &Group,
+    pool: &PgPool,
+) -> Result<Message, Error> {
+    let message = Message::fetch(id, pool)
+        .await?
+        .ok_or(Error::UNKNOWN_MESSAGE)?;
+
+    if message.group_id != group.id {
+        return Err(Error::INSUFFICIENT_PERMISSIONS);
+    }
+
+    Ok(message)
+}
+
+pub fn can_modify_message(user: &User, message: &Message) -> bool {
     user.id == message.user_id
 }

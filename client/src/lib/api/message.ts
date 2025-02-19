@@ -18,6 +18,12 @@ export interface CreateMessageRequest {
     content: string;
 }
 
+export interface EditMessageRequest {
+    groupId: string;
+    messageId: string;
+    content: string;
+}
+
 export class Messages {
     private static getBasePath(groupId: string): string {
         return `/groups/${groupId}/messages`;
@@ -40,13 +46,19 @@ export class Messages {
         return data;
     }
 
-    static async create(
-        request: CreateMessageRequest,
-    ): Promise<Message> {
-        console.log(request);
+    static async create(request: CreateMessageRequest): Promise<Message> {
         const { data } = await instance.post<Message>(
             `${Messages.getBasePath(request.groupId)}`,
             request,
+        );
+
+        return data;
+    }
+
+    static async edit(request: EditMessageRequest): Promise<Message> {
+        const { data } = await instance.patch<Message>(
+            `${Messages.getBasePath(request.groupId)}/${request.messageId}`,
+            request
         );
 
         return data;
