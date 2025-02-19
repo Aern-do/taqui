@@ -15,6 +15,11 @@ export interface FetchMessagesParams {
     before?: string;
 }
 
+export interface DeleteMessageRequest {
+    groupId: string;
+    messageId: string;
+}
+
 export interface CreateMessageRequest {
     groupId: string;
     content: string;
@@ -60,9 +65,13 @@ export class Messages {
     static async edit(request: EditMessageRequest): Promise<Message> {
         const { data } = await instance.patch<Message>(
             `${Messages.getBasePath(request.groupId)}/${request.messageId}`,
-            request
+            request,
         );
 
         return data;
+    }
+
+    static async delete(request: DeleteMessageRequest): Promise<void> {
+        await instance.delete(`${Messages.getBasePath(request.groupId)}/${request.messageId}`);
     }
 }

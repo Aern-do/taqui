@@ -179,6 +179,18 @@ const ContextMenuShortcut = ({
 }
 ContextMenuShortcut.displayName = "ContextMenuShortcut"
 
+const ContextMenuItemIcon = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<"div"> & {
+    icon: React.ElementType
+  }
+>(({ icon: Icon, ...props }, ref) => (
+  <div ref={ref} {...props}>
+    <Icon className="mr-2 h-4 w-4" />
+  </div>
+))
+ContextMenuItemIcon.displayName = "ContextMenuItemIcon"
+
 export {
   ContextMenu,
   ContextMenuTrigger,
@@ -195,4 +207,5 @@ export {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuRadioGroup,
+  ContextMenuItemIcon
 }

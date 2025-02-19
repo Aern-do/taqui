@@ -7,10 +7,15 @@ export const EVENT_SOURCE_NAME = "taqui";
 
 export type BaseEvent<Name extends string, Data> = { event: Name; data: Data };
 
-export type NewMessageEvent = BaseEvent<"newMessage", Message>;
-export type EditMessageEvent = BaseEvent<"editMessage", Message>;
+export interface DeleteMessageEvent {
+    groupId: string;
+    messageId: string;
+}
 
-export type Event = NewMessageEvent | EditMessageEvent;
+export type Event =
+    | BaseEvent<"newMessage", Message>
+    | BaseEvent<"editMessage", Message>
+    | BaseEvent<"deleteMessage", DeleteMessageEvent>;
 
 export class UpdatesEventSource extends EventSource {
     constructor(
@@ -26,6 +31,9 @@ export class UpdatesEventSource extends EventSource {
         const data = JSON.parse(raw.data) as Event;
 
         match(data)
+            .with({ event: "deleteMessage" }, ({ data }) =>
+                this.handleDeleteMessage(data),
+            )
             .with({ event: "editMessage" }, ({ data }) =>
                 this.handleEditMessage(data),
             )
@@ -59,6 +67,19 @@ export class UpdatesEventSource extends EventSource {
             messages.map((message) =>
                 message.id == newMessage.id ? newMessage : message,
             ),
+        );
+    }
+
+    private handleDeleteMessage(event: DeleteMessageEvent) {
+        const messages =
+            this.queryClient.getQueryData<Message[]>([
+                "messages",
+                event.groupId,
+            ]) ?? [];
+
+        this.queryClient.setQueryData(
+            ["messages", event.groupId],
+            messages.filter((message) => message.id != event.messageId),
         );
     }
 }
