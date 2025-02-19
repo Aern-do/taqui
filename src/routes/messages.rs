@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
-    routing::{get, patch, post},
+    routing::{get, patch},
     Extension, Json, Router,
 };
 use garde::Validate;
@@ -9,7 +9,7 @@ use unicode_width::UnicodeWidthChar;
 use uuid::Uuid;
 
 use crate::{
-    event::Event,
+    event::{DeleteMessageEvent, Event},
     models::{
         group::{self},
         message::{self, can_modify_message, Message, MessageQuery, NewMessage},
@@ -140,11 +140,35 @@ pub async fn edit_message(
     Ok(Json(new_message))
 }
 
+pub async fn delete_message(
+    Path((group_id, message_id)): Path<(Uuid, Uuid)>,
+    Extension(user): Extension<User>,
+    State(context): State<Context>,
+) -> Result<(), Error> {
+    let group = group::fetch_with_membership_check(user.id, group_id, context.pool()).await?;
+    let message = message::fetch_with_group_check(message_id, &group, context.pool()).await?;
+
+    if !can_modify_message(&user, &message) {
+        return Err(Error::INSUFFICIENT_PERMISSIONS);
+    }
+
+    Message::delete(message.id, context.pool()).await?;
+
+    context.subscriptions().send(
+        &Event::DeleteMessage(DeleteMessageEvent {
+            group_id,
+            message_id,
+        }),
+        &Subscription::Group(group.id),
+    );
+
+    Ok(())
+}
+
 pub fn create_router(context: Context) -> Router<Context> {
     Router::new()
-        .route("/", post(create_message))
-        .route("/", get(get_messages))
-        .route("/:id", patch(edit_message))
+        .route("/", get(get_messages).post(create_message))
+        .route("/:id", patch(edit_message).delete(delete_message))
         .layer(
             RateLimitLayer::builder()
                 .with_user("messages")

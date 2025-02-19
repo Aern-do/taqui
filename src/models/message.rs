@@ -118,6 +118,14 @@ impl Message {
 
         Ok(messages)
     }
+
+    pub async fn delete(message_id: Uuid, pool: &PgPool) -> Result<(), Error> {
+        sqlx::query!("DELETE FROM messages WHERE id=$1", message_id)
+            .execute(pool)
+            .await?;
+
+        Ok(())
+    }
 }
 
 pub async fn fetch_with_group_check(
