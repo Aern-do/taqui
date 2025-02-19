@@ -4,8 +4,10 @@ export interface Message {
     readonly id: string;
     readonly userId: string;
     readonly groupId: string;
-    readonly createdAt: string;
     readonly content: string;
+
+    readonly createdAt: string;
+    readonly updatedAt?: string;
 }
 
 export interface FetchMessagesParams {

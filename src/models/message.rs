@@ -15,7 +15,10 @@ pub struct Message {
     pub user_id: Uuid,
     pub group_id: Uuid,
     pub content: String,
+
     pub created_at: NaiveDateTime,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Default, Clone)]

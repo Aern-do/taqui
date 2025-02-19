@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import EditMessageView from "./edit-message-view";
 import { useMe } from "@/lib/hooks";
 
-function formatMoment(date: Moment): string {
+function formatDate(date: Moment): string {
     const now = moment();
     if (date.isSame(now, "day")) {
         return `Today at ${date.format("h:mm A")}`;
@@ -23,6 +23,18 @@ function formatMoment(date: Moment): string {
         return date.format("MMM D [at] h:mm A");
     }
     return date.format("MMM D, YYYY [at] h:mm A");
+}
+
+function formatEditDate(editDate: Moment): string {
+    const now = moment();
+    if (editDate.isSame(now, "day")) {
+        return `Edited today at ${editDate.format("h:mm A")}`;
+    } else if (editDate.isSame(now.subtract(1, "day"), "day")) {
+        return `Edited yesterday at ${editDate.format("h:mm A")}`;
+    } else if (editDate.isSame(now, "year")) {
+        return `Edited on ${editDate.format("MMM D [at] h:mm A")}`;
+    }
+    return `Edited on ${editDate.format("MMM D, YYYY [at] h:mm A")}`;
 }
 
 export default function MessageView({
@@ -42,6 +54,7 @@ export default function MessageView({
         moment().utcOffset(),
         "minutes",
     );
+    const updatedAt = moment(message.updatedAt);
 
     const isEditing = selectedMessage === message.id;
 
@@ -49,12 +62,12 @@ export default function MessageView({
         <ContextMenu>
             <ContextMenuTrigger
                 className={cn(
-                    "hover:bg-accent/50z flex w-full px-4",
+                    "hover:bg-accent/50 flex w-full px-4",
                     showHeader ? "mt-4" : "mt-1",
                     isEditing && "bg-accent/50",
                 )}
             >
-                <div className="mr-3 w-[40px]">
+                <div className="mr-3 w-[40px] h-full flex items-center">
                     {showHeader && <AvatarView user={user} />}
                 </div>
 
@@ -65,7 +78,7 @@ export default function MessageView({
                                 {user.username}
                             </span>
                             <span className="text-sm text-muted-foreground">
-                                {formatMoment(createdAt)}
+                                {formatDate(createdAt)}
                             </span>
                         </div>
                     )}
@@ -73,8 +86,14 @@ export default function MessageView({
                     {isEditing ? (
                         <EditMessageView message={message} />
                     ) : (
-                        <div className="whitespace-pre-wrap break-words">
-                            {message.content}
+                        <div className="flex space-x-2 whitespace-pre-wrap break-words">
+                            <span>{message.content}</span>
+
+                            {message.updatedAt && (
+                                <i className="text-muted-foreground font-light">
+                                    ({formatEditDate(updatedAt)})
+                                </i>
+                            )}
                         </div>
                     )}
                 </div>

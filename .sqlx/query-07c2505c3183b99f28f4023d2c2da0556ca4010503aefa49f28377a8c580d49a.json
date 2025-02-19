@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "created_at",
         "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 5,
+        "name": "updated_at",
+        "type_info": "Timestamp"
       }
     ],
     "parameters": {
@@ -41,7 +46,8 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
   "hash": "07c2505c3183b99f28f4023d2c2da0556ca4010503aefa49f28377a8c580d49a"
