@@ -3,7 +3,7 @@ import { Group, Groups } from "@/lib/api/group";
 import { Invite, Invites } from "@/lib/api/invite";
 import { Message, Messages } from "@/lib/api/message";
 import { User, Users } from "@/lib/api/users";
-import { useChatStore } from "@/lib/store";
+import { useChatStore, useTypingStore } from "@/lib/store";
 import {
     useQuery,
     useQueryClient,
@@ -51,9 +51,10 @@ export function useMembers(groupId: string): UseQueryResult<Invite[]> {
 
 export function useEvents(url: string, dependencies: DependencyList) {
     const client = useQueryClient();
+    const typing = useTypingStore();
 
     useEffect(() => {
-        const source = new UpdatesEventSource(url, client);
+        const source = new UpdatesEventSource(url, client, typing);
 
         return () => source.close();
     }, dependencies);

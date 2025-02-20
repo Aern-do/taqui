@@ -2,6 +2,8 @@ import { QueryClient } from "@tanstack/react-query";
 import { Message } from "./message";
 import { BASE_URL } from "./axios";
 import { match } from "ts-pattern";
+import { User } from "./users";
+import { TypingStore } from "../store";
 
 export const EVENT_SOURCE_NAME = "taqui";
 
@@ -12,15 +14,28 @@ export interface DeleteMessageEvent {
     messageId: string;
 }
 
+export interface StartTypingEvent {
+    groupId: string;
+    user: User;
+}
+
+export interface EndTypingEvent {
+    groupId: string;
+    user: User;
+}
+
 export type Event =
     | BaseEvent<"newMessage", Message>
     | BaseEvent<"editMessage", Message>
-    | BaseEvent<"deleteMessage", DeleteMessageEvent>;
+    | BaseEvent<"deleteMessage", DeleteMessageEvent>
+    | BaseEvent<"startTyping", StartTypingEvent>
+    | BaseEvent<"endTyping", EndTypingEvent>;
 
 export class UpdatesEventSource extends EventSource {
     constructor(
         url: string,
         private queryClient: QueryClient,
+        private typing: TypingStore,
     ) {
         super(`${BASE_URL}${url}`, { withCredentials: true });
 
@@ -39,7 +54,13 @@ export class UpdatesEventSource extends EventSource {
             )
             .with({ event: "newMessage" }, ({ data }) =>
                 this.handleNewMessage(data),
-            ).exhaustive;
+            )
+            .with({ event: "startTyping" }, ({ data }) => {
+                this.handleStartTyping(data);
+            })
+            .with({ event: "endTyping" }, ({ data }) => {
+                this.handleEndTyping(data);
+            }).exhaustive;
     }
 
     private handleNewMessage(message: Message) {
@@ -81,5 +102,13 @@ export class UpdatesEventSource extends EventSource {
             ["messages", event.groupId],
             messages.filter((message) => message.id != event.messageId),
         );
+    }
+
+    private handleStartTyping(event: StartTypingEvent) {
+        this.typing.add(event.user);
+    }
+
+    private handleEndTyping(event: EndTypingEvent) {
+        this.typing.remove(event.user);
     }
 }

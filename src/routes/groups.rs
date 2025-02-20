@@ -10,7 +10,7 @@ use axum::{
     extract::{Path, State},
     middleware::from_fn_with_state,
     response::{sse::Event, Sse},
-    routing::get,
+    routing::{get, post},
     Extension, Json, Router,
 };
 use garde::Validate;
@@ -97,6 +97,20 @@ pub async fn updates(
     ))
 }
 
+pub async fn start_typing(
+    State(context): State<Context>,
+    Extension(user): Extension<User>,
+    Path(group_id): Path<Uuid>,
+) -> Result<(), Error> {
+    let group = group::fetch_with_membership_check(user.id, group_id, context.pool()).await?;
+
+    context
+        .indicators()
+        .start_typing(&user, &group, context.subscriptions());
+
+    Ok(())
+}
+
 pub fn create_router(context: Context) -> Router<Context> {
     let auth_middleware = from_fn_with_state(context.clone(), auth::middleware);
 
@@ -105,6 +119,7 @@ pub fn create_router(context: Context) -> Router<Context> {
         .route("/:group_id", get(get_group).delete(delete_group))
         .route("/:group_id/updates", get(updates))
         .route("/:group_id/members", get(get_members))
+        .route("/:group_id/typing", post(start_typing))
         .layer(
             RateLimitLayer::builder()
                 .with_user("groups")

@@ -6,6 +6,9 @@ import { useChatStore } from "@/lib/store";
 import { useSelectedGroup } from "@/hooks/api";
 import { useMutationWithErrorHandling } from "@/hooks/use-mutation";
 import { useErrorHandler } from "@/hooks/use-error-handler";
+import throttle from "lodash.throttle";
+import { Groups } from "@/lib/api/group";
+import { useEffect } from "react";
 
 interface MessageInputData {
     content: string;
@@ -16,7 +19,7 @@ export default function MessageInput() {
     const { data, isLoading } = useSelectedGroup();
 
     const form = useForm<MessageInputData>();
-    const { handleSubmit, register, reset, setError } = form;
+    const { handleSubmit, register, reset, setError, watch } = form;
 
     const handleError = useErrorHandler({
         setError,
@@ -26,6 +29,19 @@ export default function MessageInput() {
         mutationFn: Messages.create,
         onError: handleError,
     });
+
+    const onTyping = throttle(
+        async () => await Groups.typing(selectedGroupId!!),
+        5000,
+        { leading: true, trailing: false },
+    );
+
+    useEffect(() => {
+        const { unsubscribe } = watch(
+            (_, { name }) => name == "content" && onTyping(),
+        );
+        return () => unsubscribe();
+    }, [watch]);
 
     if (isLoading) return;
 

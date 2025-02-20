@@ -6,6 +6,7 @@ pub mod rate_limit;
 pub mod routes;
 pub mod subscriptions;
 pub mod util;
+pub mod typing;
 
 pub use context::Context;
 use context::Keys;

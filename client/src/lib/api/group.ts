@@ -25,8 +25,10 @@ export class Groups {
     }
 
     static async fetchMembers(id: string): Promise<User[]> {
-        const { data } = await instance.get<User[]>(`${Groups.BASE_PATH}/${id}/members`);
-        return data
+        const { data } = await instance.get<User[]>(
+            `${Groups.BASE_PATH}/${id}/members`,
+        );
+        return data;
     }
 
     static async fetchAll(): Promise<Group[]> {
@@ -42,5 +44,9 @@ export class Groups {
     static async create(request: CreateGroupRequest): Promise<Group> {
         const { data } = await instance.post<Group>(Groups.BASE_PATH, request);
         return data;
+    }
+
+    static async typing(groupId: string): Promise<void> {
+        await instance.post(`${Groups.BASE_PATH}/${groupId}/typing`);
     }
 }

@@ -76,6 +76,7 @@ pub async fn create_message(
         &Event::NewMessage(message.clone()),
         &Subscription::Group(group.id),
     );
+    context.indicators().end_typing(&user, &group);
 
     Ok(Json(message))
 }

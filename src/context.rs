@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::extract::FromRef;
 use sqlx::PgPool;
 
-use crate::{rate_limit::Buckets, subscriptions::Subscriptions};
+use crate::{rate_limit::Buckets, subscriptions::Subscriptions, typing::Indicators};
 
 #[derive(Debug, Clone)]
 pub struct Keys {
@@ -31,10 +31,11 @@ impl Keys {
 #[derive(Debug, Clone, FromRef)]
 pub struct Context {
     pool: Arc<PgPool>,
+    keys: Keys,
+
     subscriptions: Subscriptions,
     buckets: Buckets,
-
-    keys: Keys,
+    indicators: Indicators,
 
     _no_validation_arguments: (),
 }
@@ -46,6 +47,7 @@ impl Context {
             keys,
             subscriptions: Subscriptions::default(),
             buckets: Buckets::default(),
+            indicators: Indicators::default(),
 
             _no_validation_arguments: (),
         }
@@ -61,6 +63,10 @@ impl Context {
 
     pub fn buckets(&self) -> &Buckets {
         &self.buckets
+    }
+
+    pub fn indicators(&self) -> &Indicators {
+        &self.indicators
     }
 
     pub fn keys(&self) -> &Keys {

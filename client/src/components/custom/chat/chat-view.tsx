@@ -1,11 +1,13 @@
 import { useEvents, useMessages } from "@/hooks/api";
 import MessageInput from "./message-input";
 import MessageView from "./message-view";
-import { useChatStore } from "@/lib/store";
+import { useChatStore, useTypingStore } from "@/lib/store";
 import { useEffect, useMemo, useRef } from "react";
 import { Groups } from "@/lib/api/group";
 import GroupHeader from "./group-header";
 import { Message } from "@/lib/api/message";
+import TypingIndicator from "./typing-indicator";
+import { useMe } from "@/lib/hooks";
 
 interface GroupedMessage {
     message: Message;
@@ -14,12 +16,15 @@ interface GroupedMessage {
 
 export default function ChatView() {
     const groupStore = useChatStore();
+    const { users } = useTypingStore();
+
     const endRef = useRef<HTMLDivElement>(null);
     const messagesRef = useRef<HTMLDivElement>(null);
 
     const { data: messages, isLoading: isMessagesLoading } = useMessages(
         groupStore.selectedGroup!!,
     );
+    const { data: me, isLoading: isMeLoading } = useMe();
 
     useEvents(Groups.getUpdatesPath(groupStore.selectedGroup!!), [
         groupStore.selectedGroup,
@@ -56,10 +61,10 @@ export default function ChatView() {
         }, []);
     }, [messages]);
 
-    if (isMessagesLoading) return;
+    if (isMessagesLoading || isMeLoading) return;
 
     return (
-        <div className="space-b-4 flex min-w-0 max-w-full flex-1 flex-col pb-4">
+        <div className="space-b-4 flex min-w-0 max-w-full flex-1 flex-col">
             <GroupHeader />
 
             <div
@@ -77,6 +82,7 @@ export default function ChatView() {
             </div>
 
             <MessageInput />
+            <TypingIndicator users={users.filter((user) => user.id != me?.id)} />
         </div>
     );
 }
