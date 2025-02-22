@@ -11,6 +11,7 @@ export enum ErrorCode {
     InvalidToken = 6000,
     InsufficientPermissions = 6001,
     InvalidCredentials = 6002,
+    CaptchaFailed = 6003,
 }
 
 export type Component = ["key", string] | ["index", number];

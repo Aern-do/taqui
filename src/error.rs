@@ -85,7 +85,8 @@ define_code!(
 
         InvalidToken = (6000, UNAUTHORIZED) @ "invalid token",
         InsufficientPermissions = (6001, UNAUTHORIZED) @ "insufficient permissions",
-        InvalidCredentials = (6002, UNAUTHORIZED) @ "invalid credentials"
+        InvalidCredentials = (6002, UNAUTHORIZED) @ "invalid credentials",
+        CaptchaFailed = (6003, UNPROCESSABLE_ENTITY) @ "captcha failed"
     }
 );
 
@@ -154,4 +155,5 @@ impl_from! {
     sqlx::Error;
     password_hash::Error;
     jsonwebtoken::errors::Error;
+    reqwest::Error;
 }

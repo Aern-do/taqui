@@ -24,9 +24,10 @@ use tokio::task::{self};
 use uuid::Uuid;
 
 use crate::{
+    common::{turnstile::VerifyTokenRequest, Garde, RouterExt},
     models::User,
     rate_limit::{Component, Key, RateLimitLayer},
-    Context, Error, Garde, RouterExt,
+    Context, Error,
 };
 
 const TOKEN_EXPIRATION: u64 = 24 * 60 * 60;
@@ -94,6 +95,8 @@ pub struct RegisterBody {
     username: String,
     #[garde(length(min = 8), custom(validate_password_strength))]
     password: String,
+    #[garde(skip)]
+    token: String,
 }
 
 fn validate_password_strength(password: &str, _: &()) -> garde::Result {
@@ -116,14 +119,22 @@ fn validate_password_strength(password: &str, _: &()) -> garde::Result {
 }
 
 pub async fn register(
-    State(ctx): State<Context>,
+    State(context): State<Context>,
     Garde(Json(body)): Garde<Json<RegisterBody>>,
 ) -> Result<Json<User>, Error> {
+    context
+        .turnstile()
+        .verify(VerifyTokenRequest {
+            response: body.token,
+            ..Default::default()
+        })
+        .await?;
+
     let password_hash = task::spawn_blocking(|| hash_password(body.password))
         .await
         .expect("failed to join blocking hash task")?;
 
-    let user = User::create(body.username, password_hash, ctx.pool()).await?;
+    let user = User::create(body.username, password_hash, context.pool()).await?;
     Ok(Json(user))
 }
 
@@ -133,14 +144,25 @@ pub struct LoginBody {
     username: String,
     #[garde(length(min = 8))]
     password: String,
+
+    #[garde(skip)]
+    token: String,
 }
 
 pub async fn login(
-    State(ctx): State<Context>,
+    State(context): State<Context>,
     jar: CookieJar,
     Garde(Json(body)): Garde<Json<LoginBody>>,
 ) -> Result<(CookieJar, Json<User>), Error> {
-    let user = User::fetch_by_username(&body.username, ctx.pool())
+    context
+        .turnstile()
+        .verify(VerifyTokenRequest {
+            response: body.token,
+            ..Default::default()
+        })
+        .await?;
+
+    let user = User::fetch_by_username(&body.username, context.pool())
         .await?
         .ok_or(Error::INVALID_CREDENTIALS)?;
 
@@ -148,7 +170,7 @@ pub async fn login(
         return Err(Error::INVALID_CREDENTIALS);
     };
 
-    let token = generate_token(&user, ctx.keys().private_key())?;
+    let token = generate_token(&user, context.keys().private_key())?;
 
     let expiration = OffsetDateTime::now_utc();
     let expiration = expiration + Duration::seconds(TOKEN_EXPIRATION as i64);

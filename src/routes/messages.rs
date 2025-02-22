@@ -9,6 +9,7 @@ use unicode_width::UnicodeWidthChar;
 use uuid::Uuid;
 
 use crate::{
+    common::{Garde, Subscription},
     event::{DeleteMessageEvent, Event},
     models::{
         group::{self},
@@ -16,8 +17,7 @@ use crate::{
         User,
     },
     rate_limit::middleware::RateLimitLayer,
-    subscriptions::Subscription,
-    Context, Error, Garde,
+    Context, Error,
 };
 
 fn sanitize(content: &str) -> String {

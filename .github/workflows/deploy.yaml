@@ -83,6 +83,8 @@ jobs:
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             export BACKEND_IMAGE=${{ env.IMAGE_NAME }}:${{ github.sha }}
-            
+            export TURNSTILE_SECRET=${{ secrets.TURNSTILE_SECRET }}
+            export VITE_SITE_KEY=${{ secrets.SITE_KEY }}
+
             docker compose -f compose.prod.yaml pull
             docker compose -f compose.prod.yaml up -d

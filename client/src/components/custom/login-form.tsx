@@ -1,4 +1,3 @@
-import { login } from "@/lib/api/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -16,7 +15,9 @@ import { Button } from "../ui/button";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { ErrorCode } from "@/lib/api/error";
 import { useMutationWithErrorHandling } from "@/hooks/use-mutation";
+import { Turnstile } from "@marsidev/react-turnstile";
 import RootError from "./root-error";
+import { Auth } from "@/lib/api/auth";
 
 const loginSchema = z.object({
     username: z
@@ -26,6 +27,7 @@ const loginSchema = z.object({
         .max(16),
 
     password: z.string().min(8),
+    token: z.string(),
 });
 
 type LoginData = z.infer<typeof loginSchema>;
@@ -35,11 +37,18 @@ export default function LoginForm() {
 
     const form = useForm<LoginData>({
         resolver: zodResolver(loginSchema),
+        defaultValues: {
+            token: "",
+            username: "",
+            password: "",
+        },
     });
     const {
         handleSubmit,
         control,
         setError,
+        setValue,
+        register,
         formState: { errors },
     } = form;
 
@@ -50,12 +59,16 @@ export default function LoginForm() {
                 path: "root",
                 message: "Invalid login or password",
             },
+            [ErrorCode.CaptchaFailed]: {
+                path: "root",
+                message: "The CAPTCHA verification failed.",
+            },
         },
     });
 
     const { mutateAsync, isPending } = useMutationWithErrorHandling({
         onError: handleError,
-        mutationFn: login,
+        mutationFn: Auth.login,
 
         onSuccess: async () => {
             await navigate({
@@ -64,8 +77,13 @@ export default function LoginForm() {
         },
     });
 
-    const onSumbit: SubmitHandler<LoginData> = async (data) =>
-        await mutateAsync(data);
+    const onSumbit: SubmitHandler<LoginData> = async (data) => {
+        await mutateAsync({
+            username: data.username,
+            password: data.password,
+            token: data.token,
+        });
+    };
 
     return (
         <Form {...form}>
@@ -105,11 +123,20 @@ export default function LoginForm() {
                     />
                 </div>
 
+                <div className="flex w-full justify-center">
+                    <Turnstile
+                        options={{ theme: "dark" }}
+                        siteKey={import.meta.env.VITE_SITE_KEY}
+                        onSuccess={(token) => setValue("token", token)}
+                    />
+                    <input type="hidden" {...register("token")} />
+                </div>
+
                 <Button className="w-full" type="submit" disabled={isPending}>
                     {isPending ? "Logging in..." : "Log In"}
                 </Button>
-                <div className="text-center text-sm">
-                    Don&apos;t have an account?{" "}
+                <div className="space-x-1 text-center text-sm">
+                    <span>Don&apos;t have an account?</span>
                     <Link
                         to="/register"
                         className="underline underline-offset-4"
