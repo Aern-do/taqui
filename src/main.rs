@@ -1,23 +1,31 @@
+pub mod common;
 pub mod context;
 pub mod error;
 pub mod event;
 pub mod models;
 pub mod rate_limit;
 pub mod routes;
-pub mod subscriptions;
-pub mod util;
-pub mod typing;
 
-pub use context::Context;
 use context::Keys;
-pub use error::{Code, Details, Error};
-use tower_http::{cors::CorsLayer, services::{ServeDir, ServeFile}, trace::TraceLayer};
-pub use util::{Garde, RouterExt};
+use tower_http::{
+    cors::CorsLayer,
+    services::{ServeDir, ServeFile},
+    trace::TraceLayer,
+};
 
 use axum::Router;
 use sqlx::postgres::PgPoolOptions;
-use std::{env::var, fs, net::SocketAddr, path::{Path, PathBuf}, sync::Arc};
+use std::{
+    env::var,
+    fs,
+    net::SocketAddr,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use tokio::net::TcpListener;
+
+pub use context::Context;
+pub use error::{Code, Details, Error};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -29,6 +37,8 @@ async fn main() -> anyhow::Result<()> {
     let jwt_private = fs::read(jwt_path.join("jwt_private.pem"))?;
 
     let database_url = var("DATABASE_URL")?;
+    let turnstile_secret = var("TURNSTILE_SECRET")?;
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
@@ -36,7 +46,11 @@ async fn main() -> anyhow::Result<()> {
 
     sqlx::migrate!().run(&pool).await?;
 
-    let context = Context::new(Arc::new(pool), Keys::new(jwt_public, jwt_private));
+    let context = Context::new(
+        Arc::new(pool),
+        Keys::new(jwt_public, jwt_private),
+        turnstile_secret,
+    );
 
     let addr = "0.0.0.0:3000";
     let listener = TcpListener::bind(addr).await?;

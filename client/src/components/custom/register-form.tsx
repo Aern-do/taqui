@@ -1,6 +1,5 @@
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { useMutationWithErrorHandling } from "@/hooks/use-mutation";
-import { register } from "@/lib/api/axios";
 import { ErrorCode } from "@/lib/api/error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
@@ -16,6 +15,9 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { Turnstile } from "@marsidev/react-turnstile";
+import { Auth } from "@/lib/api/auth";
+import RootError from "./root-error";
 
 const registerSchema = z
     .object({
@@ -37,6 +39,7 @@ const registerSchema = z
                 "Password must contain at least one special character",
             ),
         confirmPassword: z.string().min(8),
+        token: z.string(),
     })
     .refine((data) => data.password == data.confirmPassword, {
         message: "Passwords must match!",
@@ -51,7 +54,14 @@ export default function RegisterForm() {
     const form = useForm<RegisterData>({
         resolver: zodResolver(registerSchema),
     });
-    const { handleSubmit, control, setError } = form;
+    const {
+        handleSubmit,
+        control,
+        setError,
+        setValue,
+        register,
+        formState: { errors },
+    } = form;
 
     const handleError = useErrorHandler({
         setError: setError,
@@ -60,11 +70,15 @@ export default function RegisterForm() {
                 path: "username",
                 message: "This username is already taken",
             },
+            [ErrorCode.CaptchaFailed]: {
+                path: "root",
+                message: "The CAPTCHA verification failed.",
+            },
         },
     });
 
-    const { mutateAsync } = useMutationWithErrorHandling({
-        mutationFn: register,
+    const { mutateAsync, isPending } = useMutationWithErrorHandling({
+        mutationFn: Auth.register,
         onError: handleError,
 
         onSuccess: async () => {
@@ -75,12 +89,17 @@ export default function RegisterForm() {
     });
 
     const onSubmit: SubmitHandler<RegisterData> = async (data) => {
-        await mutateAsync(data);
+        await mutateAsync({
+            username: data.username,
+            password: data.password,
+            token: data.token,
+        });
     };
 
     return (
         <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <RootError errors={errors} />
                 <div className="space-y-2">
                     <FormField
                         control={control}
@@ -128,8 +147,17 @@ export default function RegisterForm() {
                     />
                 </div>
 
-                <Button className="w-full" type="submit">
-                    Register
+                <div className="flex w-full justify-center">
+                    <Turnstile
+                        options={{ theme: "dark" }}
+                        siteKey={import.meta.env.VITE_SITE_KEY}
+                        onSuccess={(token) => setValue("token", token)}
+                    />
+                    <input type="hidden" {...register("token")} />
+                </div>
+
+                <Button className="w-full" type="submit" disabled={isPending}>
+                    {isPending ? "Registering..." : "Register"}
                 </Button>
             </form>
         </Form>

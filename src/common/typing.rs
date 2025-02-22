@@ -15,10 +15,10 @@ use tokio::{
 use uuid::Uuid;
 
 use crate::{
-    event::{EndTypingEvent, Event, StartTypingEvent},
-    models::{Group, User},
-    subscriptions::{Subscription, Subscriptions},
+    common::Subscription, event::{EndTypingEvent, Event, StartTypingEvent}, models::{Group, User}
 };
+
+use super::Subscriptions;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TypingEvent {

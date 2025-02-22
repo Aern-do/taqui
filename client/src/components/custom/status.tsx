@@ -2,9 +2,9 @@ import { useMe } from "@/lib/hooks";
 import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
 import { LogOut } from "lucide-react";
-import { logout } from "@/lib/api/axios";
 import { useNavigate } from "@tanstack/react-router";
 import AvatarView from "./avatar-view";
+import { Auth } from "@/lib/api/auth";
 
 function StatusSkeleton() {
     return (
@@ -22,7 +22,7 @@ export default function UserStatus() {
     if (isLoading || !user) return <StatusSkeleton />;
 
     const onLogout = async () => {
-        await logout();
+        await Auth.logout();
         await navigate({
             to: "/login",
         });
