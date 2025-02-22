@@ -1,4 +1,7 @@
 FROM node:18-slim AS frontend-builder
+ARG VITE_SITE_KEY
+ENV VITE_SITE_KEY=$VITE_SITE_KEY
+
 WORKDIR /app/client
 COPY client .
 RUN yarn install
